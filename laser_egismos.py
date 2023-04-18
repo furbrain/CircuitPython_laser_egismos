@@ -6,7 +6,8 @@
 `laser_egismos`
 ================================================================================
 
-Device driver for the egismos series of lasers, available at https://www.egismos.com/laser-measuring-optoelectronics-module
+Device driver for the egismos series of lasers, available at
+https://www.egismos.com/laser-measuring-optoelectronics-module
 
 
 * Author(s): Phil Underwood
@@ -35,27 +36,41 @@ import busio
 
 
 class LaserError(RuntimeError):
-    pass
+    """
+    An error from the laser module
+    """
 
 
 class LaserCommandFailedError(LaserError):
-    pass
+    """
+    Laser command not recognised or acknowledged
+    """
 
 
 class BadReadingError(LaserError):
-    pass
+    """
+    Error while making a reading
+    """
 
 
 class TooDimError(LaserError):
-    pass
+    """
+    Laser return was too dim to be interpreted
+    """
 
 
 class TooBrightError(LaserError):
-    pass
+    """
+    Laser was too bright to get accurate reading
+    """
 
 
 class Laser:
-    #commands
+    """
+    This is a driver for the Laser Module 2, produced by Egismos
+    """
+
+    # commands
     READ_SW_VERSION = 0x01
     READ_DEV_TYPE = 0x02
     READ_SLAVE_ADDRESS = 0x04
@@ -74,6 +89,7 @@ class Laser:
     def __init__(self, uart: busio.UART, address=0x01):
         """
         Access an Egismos Laser distance module v2
+
         :param busio.UART uart: uart to use to connect. SHould have baud rate set to 9600
         :param address: address to use, default is 0x01; you should only change this if
           using multiple devices
@@ -81,7 +97,9 @@ class Laser:
         self.uart = uart
         self.address = address
 
-    def _build_frame(self, command: int, address=None, data: Sequence[int] = None) -> bytes:
+    def _build_frame(
+        self, command: int, address=None, data: Sequence[int] = None
+    ) -> bytes:
         """
         Build a frame that represents the given command
         :param command: Command to send
@@ -93,11 +111,11 @@ class Laser:
             address = self.address
         if data is None:
             data = []
-        checksum = (command + address + sum(data)) & 0x7f
+        checksum = (command + address + sum(data)) & 0x7F
         frame = [self.FRAME_START, address, command] + data + [checksum, self.FRAME_END]
         return bytes(frame)
 
-    def _parse_frame(self, frame:bytes) -> Tuple[int,int, bytes]:
+    def _parse_frame(self, frame: bytes) -> Tuple[int, int, bytes]:
         """
         Parse a frame and return the contained data. Raises a value error if incorrect
         start or end bytes, or if the checksum is incorrect
@@ -106,12 +124,16 @@ class Laser:
         :raises: `ValueError` if an error is encountered
         """
         if frame[0] != self.FRAME_START:
-            raise LaserCommandFailedError(f"Frame does not start with {self.FRAME_START}")
+            raise LaserCommandFailedError(
+                f"Frame does not start with {self.FRAME_START}"
+            )
         if frame[-1] != self.FRAME_END:
             raise LaserCommandFailedError(f"Frame does not end with {self.FRAME_END}")
-        checksum = sum(frame[1:-2]) & 0x7f
+        checksum = sum(frame[1:-2]) & 0x7F
         if frame[-2] != checksum:
-            raise LaserCommandFailedError(f"Checksum should be {checksum}, was {frame[-2]}")
+            raise LaserCommandFailedError(
+                f"Checksum should be {checksum}, was {frame[-2]}"
+            )
         command = frame[2]
         address = frame[1]
         data = frame[3:-2]
@@ -119,8 +141,8 @@ class Laser:
 
     def _read_frame(self):
         # wait for an AA to start
-        # FIXME this can hang - needs timeout option
-        buffer = b'\x00'
+        # F.I.X.M.E. this can hang - needs timeout option
+        buffer = b"\x00"
         while buffer[0] != self.FRAME_START:
             buffer = self.uart.read(1) or b""
         while buffer[-1] != self.FRAME_END:
@@ -128,7 +150,9 @@ class Laser:
             buffer += self.uart.read(1) or b""
         return buffer
 
-    def _send_and_receive(self, command: int, data: int = None, address: int = None) -> bytes:
+    def _send_and_receive(
+        self, command: int, data: int = None, address: int = None
+    ) -> bytes:
         if data is None:
             data = []
         if isinstance(data, int):
@@ -140,11 +164,15 @@ class Laser:
         frame = self._read_frame()
         read_command, read_address, read_data = self._parse_frame(frame)
         if command != read_command:
-            raise LaserCommandFailedError(f"Received command {read_command} does not match" +
-                             f" sent command {command}")
+            raise LaserCommandFailedError(
+                f"Received command {read_command} does not match"
+                + f" sent command {command}"
+            )
         if address != read_address:
-            raise LaserCommandFailedError(f"Received address {read_address} does not match" +
-                             f" sent address {address}")
+            raise LaserCommandFailedError(
+                f"Received address {read_address} does not match"
+                + f" sent address {address}"
+            )
         return read_data
 
     def _send_command_and_raise_on_failure(self, command, data=None):
@@ -172,6 +200,7 @@ class Laser:
     def stop_measuring(self):
         """
         Stop measuring when in continuous mode
+
         :return:
         """
         self._send_command_and_raise_on_failure(self.STOP_CONTINUOUS_MEASURE)
@@ -179,6 +208,7 @@ class Laser:
     def buzzer_on(self):
         """
         Enable beeps when receiving commands
+
         :return:
         """
         self._send_command_and_raise_on_failure(self.BUZZER_CONTROL, 0x01)
@@ -186,12 +216,14 @@ class Laser:
     def buzzer_off(self):
         """
         Disable beeps when receiving commands
+
         """
         self._send_command_and_raise_on_failure(self.BUZZER_CONTROL, 0x01)
 
     def set_slave_address(self, address):
         """
         Set the address of the laser pointer
+
         :param int address: Address to use - between 1 and 255
         """
         self._send_command_and_raise_on_failure(self.SET_SLAVE_ADDRESS, address)
@@ -200,32 +232,41 @@ class Laser:
     def measure(self) -> int:
         """
         Make a single reading.
+
         :return: distance in mm
         :raises: LaserError; can be one of
-          * TooDimError - can't see the laser spot properly
-          * TooBrightError - laser spot is too bright (may be too close to the device
-            or there may be too much ambient light
-          * BadReading - measurement failed, often due to movement
-          * LaserCommandFailedError - return value form laser was garbled
+
+          `TooDimError`
+            Can't see the laser spot properly
+          `TooBrightError`
+            Laser spot is too bright (may be too close to the device or there may be too much
+            ambient light)
+          `BadReadingError`
+            Measurement failed, often due to movement
+          `LaserCommandFailedError`
+            Return value form laser was garbled
         """
         result = self._send_and_receive(self.SINGLE_MEASURE)
         if result == b"ERR256":
             raise TooBrightError("Too much ambient light, or laser too close")
         if result == b"ERR255":
-            raise TooDimError("Laser spot too dim. Use reflective tape or shorter distance")
+            raise TooDimError(
+                "Laser spot too dim. Use reflective tape or shorter distance"
+            )
         if result == b"ERR204":
             raise BadReadingError("Unable to measure - is the target moving?")
         try:
             result = int(result)
-        except ValueError:
-            raise LaserCommandFailedError("Unexpected response from read")
+        except ValueError as exc:
+            raise LaserCommandFailedError("Unexpected response from read") from exc
         return result
 
     @property
-    def distance(self):
+    def distance(self) -> float:
         """
         Get the distance in cm
+
         :return: Distance in cm
         :raises: Same as `measure`
         """
-        return self.measure()/10
+        return self.measure() / 10.0

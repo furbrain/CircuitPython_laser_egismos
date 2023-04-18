@@ -35,12 +35,10 @@ Please ensure all dependencies are available on the CircuitPython filesystem.
 This is easily achieved by downloading
 `the Adafruit library and driver bundle <https://circuitpython.org/libraries>`_
 or individual libraries can be installed using
-`circup <https://github.com/adafruit/circup>`_.Installing from PyPI
-=====================
-.. note:: This library is not available on PyPI yet. Install documentation is included
-   as a standard element. Stay tuned for PyPI availability!
+`circup <https://github.com/adafruit/circup>`_.
 
-.. todo:: Remove the above note if PyPI version is/will be available at time of release.
+Installing from PyPI
+=====================
 
 On supported GNU/Linux systems like the Raspberry Pi, you can install the driver locally `from
 PyPI <https://pypi.org/project/circuitpython-laser-egismos/>`_.
@@ -91,8 +89,30 @@ Or the following command to update an existing version:
 Usage Example
 =============
 
-.. todo:: Add a quick, simple example. It and other examples should live in the
-examples folder and be included in docs/examples.rst.
+.. code-block:: python
+
+    import time
+
+    import board
+    import busio
+    import digitalio
+
+    from laser_egismos import Laser, LaserCommandFailedError
+
+    laser_power = digitalio.DigitalInOut(board.D10)
+    laser_power.switch_to_output(True)
+
+
+    uart = busio.UART(board.D8, board.D9, baudrate=9600)
+    laser = Laser(uart)
+    print(laser._send_and_receive(laser.READ_SW_VERSION))
+    laser.buzzer_off()
+    laser.laser_on()
+    time.sleep(3)
+    laser.laser_off()
+    time.sleep(0.1)
+    print(f"Distance is {laser.distance}cm")
+
 
 Documentation
 =============
