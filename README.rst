@@ -22,7 +22,8 @@ Introduction
     :target: https://github.com/psf/black
     :alt: Code Style: Black
 
-Device driver for the egismos series of lasers, available at https://www.egismos.com/laser-measuring-optoelectronics-module
+Device driver for the egismos series of lasers, available at
+https://www.egismos.com/laser-measuring-optoelectronics-module
 
 
 Dependencies
@@ -97,7 +98,7 @@ Usage Example
     import busio
     import digitalio
 
-    from laser_egismos import Laser, LaserCommandFailedError
+    from laser_egismos import Laser
 
     laser_power = digitalio.DigitalInOut(board.D10)
     laser_power.switch_to_output(True)
@@ -105,21 +106,21 @@ Usage Example
 
     uart = busio.UART(board.D8, board.D9, baudrate=9600)
     laser = Laser(uart)
-    print(laser._send_and_receive(laser.READ_SW_VERSION))
-    laser.buzzer_off()
-    laser.laser_on()
+    laser.set_buzzer(False)
+    laser.set_laser(True)
     time.sleep(3)
-    laser.laser_off()
+    laser.set_laser_(False)
     time.sleep(0.1)
     print(f"Distance is {laser.distance}cm")
 
 
 Documentation
 =============
-API documentation for this library can be found on `Read the Docs <https://circuitpython-laser-egismos.readthedocs.io/>`_.
+API documentation for this library can be found on `Read the Docs
+<https://circuitpython-laser-egismos.readthedocs.io/>`_.
 
-For information on building library documentation, please check out
-`this guide <https://learn.adafruit.com/creating-and-sharing-a-circuitpython-library/sharing-our-docs-on-readthedocs#sphinx-5-1>`_.
+For information on building library documentation, please check out `this guide
+<https://learn.adafruit.com/creating-and-sharing-a-circuitpython-library/sharing-our-docs-on-readthedocs#sphinx-5-1>`_.
 
 Contributing
 ============

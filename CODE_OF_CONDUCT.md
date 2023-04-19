@@ -103,7 +103,7 @@ These are the steps for upholding our community’s standards of conduct.
    moderator, or the warning goes unheeded, they may be banned for a first or
    second offense. Repeated offenses will result in the community member being
    banned.
-6. Disciplinary actions (warnings, bans, etc) for Code of Conduct violations apply
+6. Disciplinary actions (warnings, bans, etc.) for Code of Conduct violations apply
    to the platform where the violation occurred. However, depending on the severity
    of the violation, the disciplinary action may be applied across CircuitPython's
    other community platforms. For example, a severe violation in one Community forum
