@@ -10,15 +10,17 @@ import digitalio
 
 from laser_egismos import Laser
 
-laser_power = digitalio.DigitalInOut(board.D10)
+periph_power = digitalio.DigitalInOut(board.D5)
+periph_power.switch_to_output(True)
+laser_power = digitalio.DigitalInOut(board.D0)
 laser_power.switch_to_output(True)
 
-
-uart = busio.UART(board.D8, board.D9, baudrate=9600)
+time.sleep(0.5)
+uart = busio.UART(board.D2, board.D1, baudrate=9600)
 laser = Laser(uart)
-laser.buzzer_off()
-laser.laser_on()
-time.sleep(3)
-laser.laser_off()
+laser.set_buzzer(False)
+laser.set_laser(True)
+time.sleep(1)
+laser.set_laser(False)
 time.sleep(0.1)
 print(f"Distance is {laser.distance}cm")
