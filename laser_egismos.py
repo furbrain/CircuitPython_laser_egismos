@@ -275,7 +275,7 @@ class Laser(_LaserBase):
 
 class AsyncLaser(_LaserBase):
     """
-    Same as `Laser`, but with async methods, requires the `~asyncio` module
+    Same as `Laser`, but with async methods, requires the `asyncio` module
     """
 
     def __init__(self, uart: busio.UART, address=0x01):
